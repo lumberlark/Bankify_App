@@ -61,11 +61,14 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const displayMovments = function (movements) {
+const displayMovments = function (movements, sort = false) {
   // Empty the container to add new elements
   containerMovements.innerHTML = '';
 
-  movements.forEach(function (mov, i) {
+  // creates a copy of array using slice to display sorted list
+  const movs = sort ? movements.slice().sort((a, b) => a - b) : movements;
+
+  movs.forEach(function (mov, i) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
 
     const html = `
@@ -196,6 +199,194 @@ btnTransfer.addEventListener('click', function (e) {
     updateUI(currentAccount);
   }
 });
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// Request a loan
+btnLoan.addEventListener('click', function (e) {
+  e.preventDefault();
+
+  const amount = Number(inputLoanAmount.value);
+
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    // Add Movement
+    currentAccount.movements.push(amount);
+
+    // Update UI
+    updateUI(currentAccount);
+  }
+});
+
+//////////////////////////////////////////////////////////////////////////////////////////
+// Closing the account
+btnClose.addEventListener('click', function (e) {
+  e.preventDefault();
+  if (
+    inputCloseUsername.value === currentAccount.username &&
+    Number(inputClosePin.value) === currentAccount.pin
+  ) {
+    const index = accounts.findIndex(
+      acc => acc.username === currentAccount.username
+    );
+    // .index(23)
+    console.log(index);
+    //Delete Account
+    accounts.splice(index, 1);
+    //Hide UI
+    containerApp.style.opacity = 0;
+  }
+  inputCloseUsername.value = inputClosePin.value = '';
+});
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+// Building the Sort button on bottom of application
+
+let sorted = false;
+btnSort.addEventListener('click', function (e) {
+  e.preventDefault();
+  displayMovments(currentAccount.movements, !sorted);
+  sorted = !sorted;
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////
+
+// // Array method practice
+// // 1.
+// const bankDepositsSum = accounts
+//   .flatMap(acc => acc.movements)
+//   .filter(mov => mov > 0)
+//   .reduce((sum, cur) => sum + cur, 0);
+// console.log(bankDepositsSum);
+
+// // 2. - deposits over 1000 dollars - 5
+// const numDepositis1000 = accounts
+//   .flatMap(acc => acc.movements)
+//   .filter(mov => mov >= 1000).length;
+
+// // The reduce method to do the same as filter above
+// //   .reduce((count, cur) => (cur >= 1000 ? count + 1 : count), 0);
+// console.log(numDepositis1000);
+
+// // 3 - all deposits and all withdrawls total for each
+// const { deposits, withdrawls } = accounts
+//   .flatMap(acc => acc.movements)
+//   .reduce(
+//     (sums, cur) => {
+//       // cur > 0 ? (sums.deposits += cur) : (sums.withdrawls += cur);
+//       sums[cur > 0 ? 'deposits' : 'withdrawls'] += cur;
+//       return sums;
+//     },
+//     { deposits: 0, withdrawls: 0 }
+//   );
+// console.log(deposits, withdrawls);
+
+// // 4. convert any string to title case
+
+// const convertTitleCase = function (title) {
+//   const capitalize = str => str[0].toUpperCase() + str.slice(1);
+
+//   const exceptions = ['a', 'an', 'the', 'and', 'but', 'or', 'on', 'in', 'with'];
+
+//   const titleCase = title
+//     .toLowerCase()
+//     .split(' ')
+//     .map(word => (exceptions.includes(word) ? word : capitalize(word)))
+//     .join(' ');
+//   return capitalize(titleCase);
+// };
+
+// console.log(convertTitleCase('this is a nice title'));
+// console.log(convertTitleCase('this is a LONG title but not too long'));
+
+// The challange #4
+
+const dogs = [
+  { weight: 22, curFood: 250, owners: ['Alice', 'Bob'] },
+  { weight: 8, curFood: 200, owners: ['Matilda'] },
+  { weight: 13, curFood: 275, owners: ['Sarah', 'John'] },
+  { weight: 32, curFood: 340, owners: ['Michael'] },
+];
+
+// 1.
+const str = ' kg';
+dogs.forEach(dog => (dog.recFood = Math.trunc(dog.weight ** 0.75 * 28)));
+console.log(dogs);
+
+// 2.
+const dogSarah = dogs.find(dog => dog.owners.includes('Sarah'));
+console.log(dogSarah);
+console.log(
+  `Sara's dog is eating ${
+    dogSarah.curFood > dogSarah.recFood ? 'To much' : 'To little'
+  }`
+);
+
+// 3.
+const ownersEatTooMuch = dogs
+  .filter(dog => dog.curFood > dog.recFood)
+  .flatMap(dog => dog.owners);
+console.log(ownersEatTooMuch);
+
+const ownersEatTooLittle = dogs
+  .filter(dog => dog.curFood < dog.recFood)
+  .flatMap(dog => dog.owners);
+console.log(ownersEatTooLittle);
+
+// 4.
+// "Matilda and
+// Alice and Bob's dogs eat too much!" and "Sarah and John and Michael's dogs eat
+// too little!"
+
+console.log(
+  `${ownersEatTooMuch.join(
+    ' and '
+  )}'s dogs eat to much! and ${ownersEatTooLittle.join(
+    ' and '
+  )}'s dogs eat too little!`
+);
+
+// 5.
+console.log(dogs.some(dog => dog.curFood === dog.recFood));
+
+// 6.
+
+const checkEatingOk = dog =>
+  dog.curFood > dog.recFood * 0.9 && dog.curFood < dog.recFood * 1.1;
+
+console.log(dogs.some(checkEatingOk));
+
+// 7.
+
+console.log(dogs.filter(checkEatingOk));
+
+// 8.
+const dogsSorted = dogs.slice().sort((a, b) => a.recFood - b.recFood);
+
+console.log(dogsSorted);
+
+// not the best with mixed numbers and strings array
+
+// const owners = ['Jonas', 'Zack', 'Adam', 'Martha'];
+// owners.sort();
+// console.log(owners);
+
+// console.log(movements);
+
+// // Return < 0 a,b (keep order)
+// // Return > 0 b,a (switch order)
+
+// // Ascending
+// movements.sort((a, b) => a - b);
+// console.log(movements);
+// // Desendeing
+// movements.sort((a, b) => b - a);
+
+// console.log(movements);
+
+// const overAllBalance = accounts
+//   .flatMap(acc => acc.movements)
+//   .flat()
+//   .reduce((acc, mov) => acc + mov, 0);
+// console.log(overAllBalance);
 
 // converting the money to usd
 // const euroToUsd = 1.1;
